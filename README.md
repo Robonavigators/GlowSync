@@ -20,7 +20,7 @@ GlowSync is a native Android TV and Google TV application that samples screen-ed
 | **Android TV / Google TV and a WLED controller** | [Quick start](#quick-start), then test the mapping before starting sync. |
 | **A developer workstation** | [Build and install](#build-and-install) from the Android Studio project. |
 | **An issue or a TV to test** | [Troubleshooting](docs/TROUBLESHOOTING.md) and [Contributing](CONTRIBUTING.md). |
-| **A coding agent** | [AGENTS.md](AGENTS.md) and the original [PROMPT.md](PROMPT.md). |
+| **A coding agent** | [AGENTS.md](AGENTS.md), [CODEX.md](CODEX.md), and the original [PROMPT.md](PROMPT.md). |
 
 ## How it works
 
@@ -103,7 +103,7 @@ The available JVM tests cover packet encoding, mapping, colour processing, adapt
 | [tests/](tests/) | Test locations and commands. |
 | [themes/](themes/) and [addons/](addons/) | Current appearance and extension boundaries; no installable themes or add-on API exist yet. |
 
-[FAQ](docs/faq.md) · [Architecture](docs/architecture.md) · [Performance](docs/performance.md) · [Privacy](docs/privacy.md) · [Device reports](docs/devices/README.md) · [Showcase](SHOWCASE.md)
+[FAQ](docs/faq.md) · [Remote](docs/REMOTE.md) · [Calibration](docs/calibration.md) · [Capture](docs/capture.md) · [WLED](docs/wled.md) · [Architecture](docs/architecture.md) · [Performance](docs/performance.md) · [Privacy](docs/privacy.md) · [Device reports](docs/devices/README.md) · [Showcase](SHOWCASE.md)
 
 ## Privacy and contributing
 

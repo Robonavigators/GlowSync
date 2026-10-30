@@ -1,0 +1,22 @@
+name: TV and WLED compatibility report
+description: Share results from a physical device and controller
+body:
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware and firmware
+      description: TV or streaming device model, Android build, WLED version, LED counts and general network topology. Omit private addresses and credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Tests and observations
+      description: Describe consent, background operation, mapping, discovery, DDP output and any issues. Include only tests actually performed; do not upload captured private content.
+    validations:
+      required: true
+  - type: textarea
+    id: measurements
+    attributes:
+      label: Performance and measurement method
+      description: Optional. Distinguish app timings from externally measured visible LED latency.

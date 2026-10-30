@@ -7,6 +7,7 @@ Thanks for helping improve GlowSync. Start with [README.md](README.md) for the c
 Use JDK 17 or newer and Android SDK 35. Run:
 
 ```sh
+python3 -m unittest discover -s tests -v
 ./gradlew testDebugUnitTest lintDebug assembleDebug
 ./gradlew connectedDebugAndroidTest  # with a compatible device or emulator
 ```

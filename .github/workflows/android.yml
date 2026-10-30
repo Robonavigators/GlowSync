@@ -17,6 +17,8 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+      - name: Tool helper tests
+        run: python3 -m unittest discover -s tests -v
       - name: Unit tests, lint and debug APK
         run: ./gradlew testDebugUnitTest lintDebug assembleDebug
       - name: Upload debug APK

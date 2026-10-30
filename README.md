@@ -1,24 +1,97 @@
-# GlowSync — By Robonavigators
+<p align="center"><img src="docs/banner.svg" alt="GlowSync — Your screen, beyond its borders. By Robonavigators." width="900"></p>
 
-GlowSync is an early native Android TV implementation of local screen-colour synchronization with a WLED controller. This project is **not yet production-ready** and does not meet the complete requested feature set. It uses MediaProjection, a low-resolution ImageReader, CPU edge sampling and RGB24 DDP over UDP. No frames are saved or uploaded.
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-4da8ff?labelColor=101b32" alt="MIT license"></a>
+  <img src="https://img.shields.io/badge/platform-Android%20TV%20%7C%20Google%20TV-74d5ff?labelColor=101b32" alt="Android TV and Google TV">
+  <img src="https://img.shields.io/badge/lighting-WLED%20%2B%20DDP-9369f8?labelColor=101b32" alt="WLED and DDP">
+  <img src="https://img.shields.io/badge/status-early%20development-f2c46d?labelColor=101b32" alt="Early development">
+</p>
 
-## Requirements and setup
+<p align="center"><strong>Ambient lighting for permitted screen content, processed locally on your TV.</strong></p>
 
-Android TV / Google TV running Android 8 (API 26) or later, a reachable WLED controller accepting DDP on UDP port 4048, and an RGB strip. Use a trusted local network: DDP and WLED's HTTP API are unencrypted. Connect the TV and controller to a stable network. Complete setup by discovering a controller or entering its IP address or hostname and testing the connection. Discovery scans mDNS HTTP services and verifies candidates via the WLED API. Multiple verified controllers can be saved and selected; one controller streams at a time. The HTTP check reads `/json/info`; it does not establish or verify UDP delivery. Enter counts for the four sides and save. The physical order starts at the top-left, clockwise: top, right, bottom, left. Set bottom to zero for three sides; use offset and reverse to align wiring. Send LED test sends a static coloured pattern without screen capture; the marker button advances one physical LED at a time. Start Sync invokes the real system permission dialog, and Stop Sync or the foreground notification stops the session. A new session requires fresh consent. Saved mapping and colour changes apply to the active session; changing the controller address requires a new session. Manual LED tests are available when sync is stopped.
+GlowSync is a native Android TV and Google TV application that samples screen-edge colours and sends individual RGB values to a WLED controller. It uses Android's screen-capture permission and DDP over your local network. **It is an early development build, not a production-ready release.** Physical TV and WLED hardware have not yet been validated.
+
+[Quick start](#quick-start) · [What it does](#what-it-does) · [Build and install](#build-and-install) · [Compatibility](#compatibility-and-limitations) · [Diagnostics](#diagnostics) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md)
+
+## Start here
+
+| You have | Start with |
+|---|---|
+| **Android TV / Google TV and a WLED controller** | [Quick start](#quick-start), then test the mapping before starting sync. |
+| **A developer workstation** | [Build and install](#build-and-install) from the Android Studio project. |
+| **An issue or a TV to test** | [Troubleshooting](docs/TROUBLESHOOTING.md) and [Contributing](CONTRIBUTING.md). |
+| **A coding agent** | [AGENTS.md](AGENTS.md) and the original [PROMPT.md](PROMPT.md). |
+
+## How it works
+
+| Step | What GlowSync does |
+|---|---|
+| **Connect** | Discovers WLED candidates or checks a manually entered IP/hostname via `/json/info`. |
+| **Map** | Assigns colours to top, right, bottom and left LEDs, with offset and direction controls. |
+| **Capture** | Requests Android's system screen-capture permission for each new session. |
+| **Sync** | Samples a low-resolution frame locally and sends RGB24 DDP packets to the selected controller. |
+
+The app does not save or upload screen frames. WLED HTTP and DDP are unencrypted: use a trusted local network. A UDP send does **not** confirm that a controller received or displayed a frame.
+
+## Quick start
+
+1. Put your Android TV or Google TV and WLED controller on a reachable local network. Enable WLED real-time DDP input and connect an addressable RGB strip.
+2. [Build and install](#build-and-install) GlowSync, open it on the TV, then discover the controller or enter its IP address and test the connection.
+3. Enter the LED count for each side. Set the bottom count to zero for a three-sided strip. Use the marker test, direction and offset to match the physical wiring.
+4. Accept Android's real screen-capture prompt. Adjust brightness, saturation, edge depth, white balance and smoothing in calibration.
+5. Start sync. Stop it from the app or foreground notification. Changing controllers requires a new capture session and fresh permission.
+
+When capture is unavailable, the standalone LED test still works. Dark scenes and blocked content can look identical; the optional dark-frame fallback also affects genuinely dark scenes.
+
+## What it does
+
+| Area | Current implementation |
+|---|---|
+| **TV interface** | Compose setup flow and Home, Devices, Calibration and Settings sections with D-pad focus indicators. |
+| **WLED** | Local discovery, manual address, verification, saved controllers and single-controller RGB24 DDP streaming. |
+| **LED layout** | Per-side counts, clockwise/counterclockwise ordering, offset, starting-corner controls and a one-LED marker. |
+| **Colour** | Average or weighted edge sampling, brightness, saturation, RGB and per-side correction, smoothing and conservative black-bar detection. |
+| **Performance** | Conflated latest-frame output, configurable FPS targets, adaptive rate/resolution and measured app-side timings. |
+| **Diagnostics** | Computed LED-colour preview, UDP counters, a direct-UDP response pattern and a field for externally measured latency. |
 
 ## Build and install
 
-Open this directory in Android Studio with Android SDK 35 and JDK 17 or newer, or run `./gradlew testDebugUnitTest assembleDebug`. Install `app/build/outputs/apk/debug/app-debug.apk` using `adb install -r app/build/outputs/apk/debug/app-debug.apk`. The project targets API 35; it does not implement API 37 local-network permission requirements. Android may require changes when the target SDK is raised.
+Requirements: JDK 17 or newer, Android SDK 35, and Android Studio or the included Gradle wrapper.
 
-## Limitations and troubleshooting
+```sh
+git clone https://github.com/Robonavigators/GlowSync.git
+cd GlowSync
+./gradlew testDebugUnitTest lintDebug assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
 
-- Secure/DRM content may appear black, as may inaccessible HDMI inputs. A black frame cannot reliably be distinguished from a dark scene. Optional dark-frame behavior can pass the frame through, hold the last colour for two seconds before going dark, or use a static warm colour; these options also affect genuinely dark scenes. No DRM bypass is attempted.
-- Capture depends on TV firmware and Android's projection lifecycle. Android 14+ requires consent for each session; projection can be revoked and cannot silently restart after process death. The service is non-sticky and uses one virtual display per consent. On Android versions that provide the captured-content resize callback, the existing virtual display is resized; actual rotation and resize behavior remains untested on hardware.
-- Latest ImageReader frames are acquired and closed, and the single UDP worker holds at most one pending frame. The output cap is selectable as Eco (15), Balanced (25), Fast (30), or Ultra (60); a simple controller reduces the cap after sustained processing/network pressure and slowly restores it. The analysis width starts at 192, 320 or 480 pixels depending on profile, steps down when the adaptive rate remains reduced and recovers cautiously. Brightness, saturation, RGB white balance, per-side RGB correction, edge depth, weighted sampling, custom smoothing and conservative black-bar detection are adjustable and apply to an active session when saved. Changing the controller address requires a new session. Black-bar detection requires symmetric dark borders and uses hysteresis; dark scenes may still produce imperfect results. The setup flow provides live brightness, saturation, edge depth, white balance, smoothing, FPS and black-bar controls plus a computed LED preview. A direct-UDP response test is available in Settings; it does not exercise the screen-capture pipeline. Simultaneous streaming to multiple controllers, full live calibration and the complete requested TV UI remain unimplemented.
-- UDP sends are not acknowledgements. A successful send does not prove the controller received or displayed a frame. Check WLED's realtime settings, LED count, firewall, Wi-Fi isolation, and address. Large strips require multiple packets and may limit practical FPS.
-- Displayed processing time is measured locally from sampling through smoothing, not physical latency. Frame counters are totals; callback, analyzed and UDP rates are calculated over recent measurement windows, not physical output rates. No end-to-end latency has been measured. For physical measurement, film a high-contrast screen transition and LEDs together with a high-speed camera, or compare a screen photodiode with an LED photodiode on an oscilloscope. In Settings, stop sync and open the response test to switch a full-screen reference pattern and send a matching direct UDP frame. Measure the difference between visible transitions externally and enter the result in Settings; the value is user-supplied. This direct test bypasses capture and includes UI scheduling. To measure the complete sync pipeline, run GlowSync, display a test pattern in another app, and measure that screen transition against the LEDs. Neither the UDP call duration nor this direct test alone is end-to-end sync latency.
-- Network send failures trigger bounded exponential retry, and default-network changes reset the UDP socket. A separate low-frequency HTTP check reports controller reachability, not UDP delivery. The foreground service stops when the screen sleeps and requires fresh consent to start again. Ordinary UDP provides no controller-disconnection signal. There is no localization or extensive lifecycle test suite. The dashboard displays computed LED colours while capture is active. The dashboard separates Home, Devices, Calibration and Settings; Back returns to Home. TV focus behavior and accessibility still require physical-device validation. The banner and icon are original vector assets.
+Open the project in Android Studio if you prefer a graphical workflow. ADB installation requires a previously authorized connection to your TV. This repository does not currently provide a published release APK.
 
-## Testing and privacy
+## Compatibility and limitations
 
-Run `./gradlew testDebugUnitTest lintDebug`; with an attached device or emulator, run `./gradlew connectedDebugAndroidTest`. Tests cover DDP headers/splitting and a UDP loopback, invalid empty frames, pixel stride/row stride, mapping permutations, rate and resolution adaptation, black-bar hysteresis, dark-frame fallback, colour adjustment, weighted sampling and smoothing. On an API 37 phone emulator, instrumented tests exercised the real permission denial and acceptance prompts, a local DDP receiver, activity backgrounding and recreation, calibration updates, the notification stop action, diagnostic UDP output, D-pad selection, section navigation and profile persistence. They are not TV or physical WLED tests; the dialog tests use English system labels and may need adaptation for other OS versions or locales. Real hardware validation has not been performed. Test permission revocation, background operation, sleep, network changes, rotation, WLED restart, and secure content on each target TV. Screen data is processed only in memory and is never logged or stored; configuration is stored in private SharedPreferences. There is no cloud account, telemetry, or subscription.
+- The app targets Android 8 (API 26) and later and is currently built against API 35. Raising the target to API 37 requires reviewing the platform's local-network permission requirements.
+- Android can block DRM-protected content, secure windows and HDMI inputs. GlowSync does not bypass those protections, and a black capture cannot reliably be classified as protected content.
+- TV firmware controls MediaProjection behavior. A session can be revoked, cannot silently restart after process death, and needs fresh consent. Screen sleep stops the service; resize support depends on Android callbacks and device behavior.
+- Multiple verified controllers can be saved; one is streamed to at a time. WLED connectivity is checked separately from the streaming loop, and UDP has no acknowledgement.
+- The interface, full lifecycle coverage, accessibility and performance require physical-TV validation. No physical screen-to-LED latency has been measured, and 60 FPS is not guaranteed.
+
+See [Troubleshooting](docs/TROUBLESHOOTING.md) for network, capture and mapping checks.
+
+## Diagnostics
+
+The dashboard distinguishes app processing, encoding, UDP call time and frame age. These numbers do not measure visible LED response.
+
+For a direct response test, stop sync and open **Settings → Open response test**. It switches the screen pattern and sends a matching UDP frame. Film the screen and LEDs together with a high-speed camera or use photodiodes; compare the visible transitions and optionally save your externally measured value in Settings. This direct test **bypasses screen capture**. To measure the complete sync path, run GlowSync, show a test pattern in another app, and measure the screen and LEDs together.
+
+## Tests and validation
+
+```sh
+./gradlew testDebugUnitTest lintDebug assembleDebug
+./gradlew connectedDebugAndroidTest  # requires an attached device or emulator
+```
+
+The available JVM tests cover packet encoding, mapping, colour processing, adaptive policies and diagnostics. Android instrumentation has exercised consent, loopback DDP, backgrounding, activity recreation, calibration, the stop action and navigation on an API 37 phone emulator. Those tests are not a substitute for a consumer TV and WLED controller. System-dialog tests use English labels and may need adaptation for other versions or locales.
+
+## Privacy and contributing
+
+Screen frames stay in memory on the TV and are not saved or uploaded. Configuration is stored locally; there is no account, subscription or analytics system. See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [AGENTS.md](AGENTS.md). GlowSync is available under the [MIT license](LICENSE).

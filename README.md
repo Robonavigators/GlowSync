@@ -67,6 +67,18 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 Open the project in Android Studio if you prefer a graphical workflow. ADB installation requires a previously authorized connection to your TV. This repository does not currently provide a published release APK.
 
+## Screenshots
+
+These are captures of the running app on an Android emulator configured with a landscape display. No physical TV or WLED controller was connected; the dashboard lights shown here are the app's clearly labelled inactive preview.
+
+| Setup welcome | WLED connection setup |
+|---|---|
+| ![GlowSync setup welcome screen on an Android emulator](docs/screenshots/setup-welcome.png) | ![GlowSync WLED connection setup on an Android emulator](docs/screenshots/setup-connect.png) |
+| Home with sync inactive | LED layout and calibration |
+| ![GlowSync dashboard showing an inactive preview on an Android emulator](docs/screenshots/dashboard.png) | ![GlowSync LED mapping and calibration on an Android emulator](docs/screenshots/calibration.png) |
+
+The Devices page is also shown in [this emulator capture](docs/screenshots/devices.png). These images document the interface, not physical controller connectivity or LED output.
+
 ## Compatibility and limitations
 
 - The app targets Android 8 (API 26) and later and is currently built against API 35. Raising the target to API 37 requires reviewing the platform's local-network permission requirements.

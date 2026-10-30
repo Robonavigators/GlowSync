@@ -164,6 +164,7 @@ class MainActivity : ComponentActivity() {
         fun go(next: Int) { step=next; prefs.edit().putInt("setupStep",next).apply() }
         BackHandler(enabled=step>0) { go(step-1) }
         MaterialTheme(colorScheme=darkColorScheme(primary=Color(0xff74d5ff), surface=Color(0xff17243b))) {
+            CompositionLocalProvider(LocalContentColor provides Color(0xffeaf3ff)) {
             Column(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(Color(0xff080f1e),Color(0xff182c50),Color(0xff080f1e)))).verticalScroll(rememberScrollState()).padding(40.dp).background(Color(0xff101b32).copy(alpha=.62f),RoundedCornerShape(24.dp)).border(1.dp,Color.White.copy(alpha=.12f),RoundedCornerShape(24.dp)).padding(24.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
                 Text("GLOWSYNC  /  BY ROBONAVIGATORS",color=Color(0xff74d5ff),letterSpacing=2.sp)
                 Text("SETUP  ${step+1} / 6",color=Color.LightGray)
@@ -232,6 +233,7 @@ class MainActivity : ComponentActivity() {
                 }
                 if(step>0) GlowOutlinedButton(onClick={go(step-1)}) { Text("Back") }
             }
+            }
         }
     }
     @OptIn(ExperimentalLayoutApi::class)
@@ -271,6 +273,7 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(Unit) { while (true) { kotlinx.coroutines.delay(1000); tick++ } }
         val navy=Color(0xff080f1e); val white=Color(0xffeaf3ff); val blue=Color(0xff74d5ff)
         MaterialTheme(colorScheme=darkColorScheme(primary=blue, surface=Color(0xff17243b), onSurface=white)) {
+            CompositionLocalProvider(LocalContentColor provides white) {
             Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(navy,Color(0xff16264a),navy)))) {
                 Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(horizontal=40.dp, vertical=24.dp).background(Color(0xff101b32).copy(alpha=.62f),RoundedCornerShape(24.dp)).border(1.dp,white.copy(alpha=.12f),RoundedCornerShape(24.dp)).padding(24.dp), verticalArrangement=Arrangement.spacedBy(14.dp)) {
                     Text("GlowSync", color=white, fontSize=34.sp, fontWeight=FontWeight.SemiBold)
@@ -403,6 +406,7 @@ class MainActivity : ComponentActivity() {
                     }
                     Spacer(Modifier.height(20.dp))
                 }
+            }
             }
         }
     }

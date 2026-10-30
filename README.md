@@ -11,7 +11,7 @@
 
 GlowSync is a native Android TV and Google TV application that samples screen-edge colours and sends individual RGB values to a WLED controller. It uses Android's screen-capture permission and DDP over your local network. **It is an early development build, not a production-ready release.** Physical TV and WLED hardware have not yet been validated.
 
-[Quick start](#quick-start) · [What it does](#what-it-does) · [Build and install](#build-and-install) · [Compatibility](#compatibility-and-limitations) · [Diagnostics](#diagnostics) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md) · [Project layout](#project-layout)
+[Quick start](#quick-start) · [What it does](#what-it-does) · [Preview release](https://github.com/Robonavigators/GlowSync/releases/tag/v0.1.0-preview.1) · [Build and install](#build-and-install) · [Compatibility](#compatibility-and-limitations) · [Diagnostics](#diagnostics) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md) · [Project layout](#project-layout)
 
 ## Start here
 
@@ -65,7 +65,7 @@ cd GlowSync
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Open the project in Android Studio if you prefer a graphical workflow. ADB installation requires a previously authorized connection to your TV. This repository does not currently provide a published release APK.
+Open the project in Android Studio if you prefer a graphical workflow. ADB installation requires a previously authorized connection to your TV. A debug APK is available temporarily as the [GitHub Actions artifact for this preview](https://github.com/Robonavigators/GlowSync/actions/runs/41087651449) until 2027-01-28; it is not a permanent APK release.
 
 ## Screenshots
 

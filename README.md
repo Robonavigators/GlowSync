@@ -119,4 +119,4 @@ The available JVM tests cover packet encoding, mapping, colour processing, adapt
 
 ## Privacy and contributing
 
-Screen frames stay in memory on the TV and are not saved or uploaded. Configuration is stored locally; there is no account, subscription or analytics system. See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [AGENTS.md](AGENTS.md). GlowSync is available under the [MIT license](LICENSE).
+Screen frames stay in memory on the TV and are not saved or uploaded. Configuration is stored locally; there is no account, subscription or analytics system. See [CONTRIBUTING.md](CONTRIBUTING.md), [CONTRIBUTORS.md](CONTRIBUTORS.md), [SECURITY.md](SECURITY.md), and [AGENTS.md](AGENTS.md). GlowSync is available under the [MIT license](LICENSE).

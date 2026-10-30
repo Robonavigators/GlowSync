@@ -11,7 +11,7 @@
 
 GlowSync is a native Android TV and Google TV application that samples screen-edge colours and sends individual RGB values to a WLED controller. It uses Android's screen-capture permission and DDP over your local network. **It is an early development build, not a production-ready release.** Physical TV and WLED hardware have not yet been validated.
 
-[Quick start](#quick-start) · [What it does](#what-it-does) · [Build and install](#build-and-install) · [Compatibility](#compatibility-and-limitations) · [Diagnostics](#diagnostics) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md)
+[Quick start](#quick-start) · [What it does](#what-it-does) · [Build and install](#build-and-install) · [Compatibility](#compatibility-and-limitations) · [Diagnostics](#diagnostics) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md) · [Project layout](#project-layout)
 
 ## Start here
 
@@ -91,6 +91,19 @@ For a direct response test, stop sync and open **Settings → Open response test
 ```
 
 The available JVM tests cover packet encoding, mapping, colour processing, adaptive policies and diagnostics. Android instrumentation has exercised consent, loopback DDP, backgrounding, activity recreation, calibration, the stop action and navigation on an API 37 phone emulator. Those tests are not a substitute for a consumer TV and WLED controller. System-dialog tests use English labels and may need adaptation for other versions or locales.
+
+## Project layout
+
+| Directory | Contents |
+|---|---|
+| [app/](app/) | Native Android TV app, capture and WLED pipeline, and automated tests. |
+| [docs/](docs/) | Architecture, privacy, performance, troubleshooting and a hardware report template. |
+| [tools/](tools/) | Optional build-and-install helpers for an authorized ADB connection. |
+| [examples/](examples/) | Illustrative LED layouts and physical mapping guidance. |
+| [tests/](tests/) | Test locations and commands. |
+| [themes/](themes/) and [addons/](addons/) | Current appearance and extension boundaries; no installable themes or add-on API exist yet. |
+
+[FAQ](docs/faq.md) · [Architecture](docs/architecture.md) · [Performance](docs/performance.md) · [Privacy](docs/privacy.md) · [Device reports](docs/devices/README.md) · [Showcase](SHOWCASE.md)
 
 ## Privacy and contributing
 

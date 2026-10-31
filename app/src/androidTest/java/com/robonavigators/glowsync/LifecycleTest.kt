@@ -100,19 +100,19 @@ class LifecycleTest {
             for(i in 0 until node.childCount) { val result=find(node.getChild(i),text); if(result!=null) return result }
             return null
         }
-        fun click(text:String) {
+        fun click(vararg labels:String) {
             var node:AccessibilityNodeInfo?=null
-            repeat(40) { if(node==null) { Thread.sleep(250); node=find(automation.rootInActiveWindow,text) } }
-            assertNotNull("Missing button $text",node)
+            repeat(40) { if(node==null) { Thread.sleep(250); node=labels.firstNotNullOfOrNull { find(automation.rootInActiveWindow,it) } } }
+            assertNotNull("Missing button ${labels.joinToString(" or ")}",node)
             var target=node
             while(target!=null && !target!!.isClickable) target=target!!.parent
-            assertTrue("Cannot click $text",target?.performAction(AccessibilityNodeInfo.ACTION_CLICK)==true)
+            assertTrue("Cannot click ${labels.joinToString(" or ")}",target?.performAction(AccessibilityNodeInfo.ACTION_CLICK)==true)
         }
         try {
             java.net.DatagramSocket(4048,java.net.InetAddress.getByName("127.0.0.1")).use { receiver ->
                 receiver.soTimeout=10000
                 ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-                    click("Allow Screen Capture"); click("Share screen")
+                    click("Allow Screen Capture"); click("Share screen", "Start now")
                     val packet=java.net.DatagramPacket(ByteArray(1500),1500); receiver.receive(packet)
                     assertTrue(LiveStatus.active)
                     assertTrue(packet.length>10)
@@ -135,6 +135,7 @@ class LifecycleTest {
                 }
             }
         } finally {
+            if (automation.rootInActiveWindow?.packageName?.toString() == "com.android.systemui") automation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
             context.stopService(Intent(context,ProjectionService::class.java))
             val edit=prefs.edit().clear()
             previous.forEach { (key,value) -> when(value) { is String -> edit.putString(key,value); is Int -> edit.putInt(key,value); is Boolean -> edit.putBoolean(key,value); is Float -> edit.putFloat(key,value); is Long -> edit.putLong(key,value); is Set<*> -> edit.putStringSet(key,value.filterIsInstance<String>().toSet()) } }; edit.commit()
@@ -144,27 +145,27 @@ class LifecycleTest {
         val context=ApplicationProvider.getApplicationContext<Context>(); val prefs=context.getSharedPreferences("glowsync",Context.MODE_PRIVATE); val previous=prefs.all.toMap()
         prefs.edit().putBoolean("setup",true).putString("host","127.0.0.1").commit()
         val ui=InstrumentationRegistry.getInstrumentation().uiAutomation
-        fun find(node:AccessibilityNodeInfo?, label:String):AccessibilityNodeInfo? { if(node==null) return null; if(node.text?.toString()==label) return node; for(i in 0 until node.childCount) { val result=find(node.getChild(i),label); if(result!=null) return result }; return null }
+        fun find(node:AccessibilityNodeInfo?, label:String):AccessibilityNodeInfo? { if(node==null) return null; for(i in 0 until node.childCount) { val result=find(node.getChild(i),label); if(result!=null) return result }; return if(node.text?.toString()?.contains(label)==true) node else null }
         try { ActivityScenario.launch(MainActivity::class.java).use {
             var button:AccessibilityNodeInfo?=null; repeat(40) { if(button==null) { Thread.sleep(250); button=find(ui.rootInActiveWindow,"Calibration") } }
             assertNotNull("Calibration navigation missing",button); var target=button; while(target!=null && !target!!.isClickable) target=target!!.parent
             assertTrue(target?.performAction(AccessibilityNodeInfo.ACTION_CLICK)==true)
             var shown=false; repeat(40) { if(!shown) { Thread.sleep(100); shown=find(ui.rootInActiveWindow,"Map your Ambilight")!=null } }; assertTrue("Calibration page missing",shown)
-            ui.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
-            var home=false; repeat(40) { if(!home) { Thread.sleep(100); home=find(ui.rootInActiveWindow,"Your screen. Beyond its borders.")!=null } }; assertTrue("Back did not return home",home)
+            InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            var home=false; repeat(40) { if(!home) { Thread.sleep(150); home=find(ui.rootInActiveWindow,"Your screen. Beyond its borders.")!=null } }; assertTrue("Back did not return home",home)
         } } finally { val edit=prefs.edit().clear(); previous.forEach { (key,value) -> when(value) { is String -> edit.putString(key,value); is Int -> edit.putInt(key,value); is Boolean -> edit.putBoolean(key,value); is Float -> edit.putFloat(key,value); is Long -> edit.putLong(key,value); is Set<*> -> edit.putStringSet(key,value.filterIsInstance<String>().toSet()) } }; edit.commit() }
     }
     @Test fun responseDiagnosticSendsReferencePattern() {
         val context=ApplicationProvider.getApplicationContext<Context>(); val prefs=context.getSharedPreferences("glowsync",Context.MODE_PRIVATE); val previous=prefs.all.toMap()
         prefs.edit().putBoolean("setup",true).putString("host","127.0.0.1").putInt("top",3).putInt("right",0).putInt("bottom",0).putInt("left",0).commit()
         val ui=InstrumentationRegistry.getInstrumentation().uiAutomation
-        fun find(node:AccessibilityNodeInfo?, label:String):AccessibilityNodeInfo? { if(node==null) return null; if(node.text?.toString()==label) return node; for(i in 0 until node.childCount) { val result=find(node.getChild(i),label); if(result!=null) return result }; return null }
+        fun find(node:AccessibilityNodeInfo?, label:String):AccessibilityNodeInfo? { if(node==null) return null; for(i in 0 until node.childCount) { val result=find(node.getChild(i),label); if(result!=null) return result }; return if(node.text?.toString()?.contains(label)==true) node else null }
         fun scrollable(node:AccessibilityNodeInfo?):AccessibilityNodeInfo? { if(node==null) return null; if(node.isScrollable) return node; for(i in 0 until node.childCount) { val result=scrollable(node.getChild(i)); if(result!=null) return result }; return null }
         fun click(node:AccessibilityNodeInfo?) { var target=node; while(target!=null && !target!!.isClickable) target=target!!.parent; assertTrue("Could not click",target?.performAction(AccessibilityNodeInfo.ACTION_CLICK)==true) }
         try { java.net.DatagramSocket(4048,java.net.InetAddress.getByName("127.0.0.1")).use { receiver -> receiver.soTimeout=10000
             ActivityScenario.launch(MainActivity::class.java).use {
                 var settings:AccessibilityNodeInfo?=null; repeat(40) { if(settings==null) { Thread.sleep(250); settings=find(ui.rootInActiveWindow,"Settings") } }; assertNotNull(settings); click(settings)
-                var open:AccessibilityNodeInfo?=null; repeat(20) { if(open==null) { Thread.sleep(200); open=find(ui.rootInActiveWindow,"Open response test"); if(open==null) scrollable(ui.rootInActiveWindow)?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) } }; assertNotNull("Response diagnostic missing",open); click(open)
+                var open:AccessibilityNodeInfo?=null; repeat(30) { i -> if(open==null) { Thread.sleep(350); open=find(ui.rootInActiveWindow,"Open response test"); if(open==null) scrollable(ui.rootInActiveWindow)?.performAction(if(i < 15) AccessibilityNodeInfo.ACTION_SCROLL_FORWARD else AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD) } }; assertNotNull("Response diagnostic missing",open); click(open)
                 var trigger:AccessibilityNodeInfo?=null; repeat(40) { if(trigger==null || trigger?.isEnabled!=true) { Thread.sleep(250); trigger=find(ui.rootInActiveWindow,"Switch to white") } }; assertNotNull(trigger); click(trigger)
                 val packet=java.net.DatagramPacket(ByteArray(1500),1500); receiver.receive(packet); assertEquals(19,packet.length); assertEquals(180,packet.data[10].toInt() and 255)
             }

@@ -41,6 +41,7 @@ import com.robonavigators.glowsync.capture.*
 import com.robonavigators.glowsync.network.DdpSender
 import com.robonavigators.glowsync.network.WledDiscovery
 import com.robonavigators.glowsync.network.verificationHelp
+import com.robonavigators.glowsync.network.VerificationRequestGuard
 import com.robonavigators.glowsync.network.WledDevice
 import com.robonavigators.glowsync.data.ControllerStore
 import java.net.HttpURLConnection
@@ -56,9 +57,11 @@ private fun GlowButton(onClick: () -> Unit, enabled: Boolean = true, autoFocus: 
     androidx.compose.material3.Button(onClick=onClick,enabled=enabled,modifier=Modifier.focusRequester(requester).onFocusChanged { focused=it.isFocused }.border(if(focused) 3.dp else 1.dp,if(focused) Color(0xff74d5ff) else Color.White.copy(alpha=.18f),RoundedCornerShape(28.dp)),content=content)
 }
 @Composable
-private fun GlowOutlinedButton(onClick: () -> Unit, enabled: Boolean = true, content: @Composable RowScope.() -> Unit) {
+private fun GlowOutlinedButton(onClick: () -> Unit, enabled: Boolean = true, autoFocus: Boolean = false, content: @Composable RowScope.() -> Unit) {
     var focused by remember { mutableStateOf(false) }
-    androidx.compose.material3.OutlinedButton(onClick=onClick,enabled=enabled,modifier=Modifier.onFocusChanged { focused=it.isFocused }.border(if(focused) 3.dp else 1.dp,if(focused) Color(0xff74d5ff) else Color.White.copy(alpha=.18f),RoundedCornerShape(28.dp)),content=content)
+    val requester=remember { FocusRequester() }
+    LaunchedEffect(autoFocus,enabled) { if(autoFocus && enabled) requester.requestFocus() }
+    androidx.compose.material3.OutlinedButton(onClick=onClick,enabled=enabled,modifier=Modifier.focusRequester(requester).onFocusChanged { focused=it.isFocused }.border(if(focused) 3.dp else 1.dp,if(focused) Color(0xff74d5ff) else Color.White.copy(alpha=.18f),RoundedCornerShape(28.dp)),content=content)
 }
 
 @Composable
@@ -144,11 +147,12 @@ class MainActivity : ComponentActivity() {
         var host by remember { mutableStateOf(prefs.getString("host", "").orEmpty()) }
         var message by remember { mutableStateOf("") }
         var verified by remember { mutableStateOf(false) }
+        val verificationGuard = remember { VerificationRequestGuard() }
         val setupStore=remember { ControllerStore(prefs) }
         var setupFound by remember { mutableStateOf<List<WledDevice>>(emptyList()) }
         var setupDiscovery by remember { mutableStateOf<WledDiscovery?>(null) }
         val activeDiscovery by rememberUpdatedState(setupDiscovery)
-        DisposableEffect(Unit) { onDispose { activeDiscovery?.close() } }
+        DisposableEffect(Unit) { onDispose { verificationGuard.invalidate(); activeDiscovery?.close() } }
         var counts by remember { mutableStateOf(listOf("top","right","bottom","left").map { prefs.getInt(it, if(it=="top" || it=="bottom") 30 else 18).toString() }) }
         var setupBrightness by remember { mutableFloatStateOf(prefs.getFloat("brightness",1f)) }
         var setupSaturation by remember { mutableFloatStateOf(prefs.getFloat("saturation",1f)) }
@@ -162,7 +166,7 @@ class MainActivity : ComponentActivity() {
         var setupMarker by remember { mutableIntStateOf(0) }
         var previewTick by remember { mutableIntStateOf(0) }
         LaunchedEffect(Unit) { while(true) { kotlinx.coroutines.delay(1000); previewTick++ } }
-        fun go(next: Int) { step=next; prefs.edit().putInt("setupStep",next).apply() }
+        fun go(next: Int) { verificationGuard.invalidate(); step=next; prefs.edit().putInt("setupStep",next).apply() }
         BackHandler(enabled=step>0) { go(step-1) }
         MaterialTheme(colorScheme=darkColorScheme(primary=Color(0xff74d5ff), surface=Color(0xff17243b))) {
             CompositionLocalProvider(LocalContentColor provides Color(0xffeaf3ff)) {
@@ -185,9 +189,9 @@ class MainActivity : ComponentActivity() {
                         Text("Connect Your Lights",fontSize=30.sp)
                         Text("Discover a controller or enter its address. Results are verified through WLED before they are listed.")
                         GlowOutlinedButton(onClick={ setupDiscovery?.close(); setupFound=emptyList(); message="Scanning local network…"; setupDiscovery=WledDiscovery(this@MainActivity,{ device -> runOnUiThread { if(setupFound.none { it.host==device.host }) setupFound=setupFound+device } }, { error -> runOnUiThread { message=error } }).also { it.start() } }) { Text("Discover WLED") }
-                        setupFound.forEach { device -> GlowOutlinedButton(onClick={ host=device.host; verified=true; message="Verified ${device.name}: ${device.ledCount} LEDs, firmware ${device.version}"; prefs.edit().putString("host",host).apply(); setupStore.save(device); setupDiscovery?.close(); setupDiscovery=null }) { Text("${device.name} · ${device.host} · ${device.ledCount} LEDs") } }
-                        OutlinedTextField(value=host,onValueChange={host=it; verified=false},label={Text("IP address or hostname")},singleLine=true)
-                        GlowButton(onClick={ val h=host.trim(); thread { try { val d=WledDiscovery.verify(h); runOnUiThread { verified=true; message="Verified ${d.name}: ${d.ledCount} LEDs, firmware ${d.version}"; prefs.edit().putString("host",h).apply(); setupStore.save(d) } } catch(e:Exception) { runOnUiThread { verified=false; message=verificationHelp(e) } } } }) { Text("Test connection") }
+                        setupFound.forEach { device -> GlowOutlinedButton(onClick={ verificationGuard.invalidate(); host=device.host; verified=true; message="Verified ${device.name}: ${device.ledCount} LEDs, firmware ${device.version}"; prefs.edit().putString("host",host).apply(); setupStore.save(device); setupDiscovery?.close(); setupDiscovery=null }) { Text("${device.name} · ${device.host} · ${device.ledCount} LEDs") } }
+                        OutlinedTextField(value=host,onValueChange={verificationGuard.invalidate(); host=it; verified=false; message=""},label={Text("IP address or hostname")},singleLine=true)
+                        GlowButton(onClick={ val h=host.trim(); val request=verificationGuard.next(); verified=false; message="Checking connection…"; thread { try { val d=WledDiscovery.verify(h); runOnUiThread { if(verificationGuard.isCurrent(request)) { verified=true; message="Verified ${d.name}: ${d.ledCount} LEDs, firmware ${d.version}"; prefs.edit().putString("host",h).apply(); setupStore.save(d) } } } catch(e:Exception) { runOnUiThread { if(verificationGuard.isCurrent(request)) { verified=false; message=verificationHelp(e) } } } } }) { Text("Test connection") }
                         Text(message); GlowButton(enabled=verified,onClick={setupDiscovery?.close(); setupDiscovery=null; go(2)}) { Text("Continue") }
                     }
                     2 -> {
@@ -281,7 +285,7 @@ class MainActivity : ComponentActivity() {
                     Text("BY ROBONAVIGATORS  /  AMBIENT LIGHTING",color=blue,fontSize=12.sp,letterSpacing=2.sp)
                     FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                         listOf("Home","Devices","Calibration","Settings").forEachIndexed { index,label ->
-                            GlowOutlinedButton(onClick={page=index}) { Text(if(page==index) "● $label" else label) }
+                            GlowOutlinedButton(onClick={page=index},autoFocus=index==0) { Text(if(page==index) "● $label" else label) }
                         }
                     }
                     Spacer(Modifier.height(6.dp))
@@ -309,7 +313,7 @@ class MainActivity : ComponentActivity() {
                     }
                     Text("GlowSync analyzes permitted screen colours locally. Protected video and HDMI inputs may be unavailable.",color=white.copy(alpha=.76f),fontSize=15.sp)
                     Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                        GlowButton(autoFocus=true,enabled=!LiveStatus.active,onClick={ if(host.isBlank()) info="Enter a controller address first." else { prefs.edit().putString("host",host.trim()).apply(); permission.launch(captureIntent()) } }) { Text("Allow Screen Capture / Start Sync") }
+                        GlowButton(enabled=!LiveStatus.active,onClick={ if(host.isBlank()) info="Enter a controller address first." else { prefs.edit().putString("host",host.trim()).apply(); permission.launch(captureIntent()) } }) { Text("Allow Screen Capture / Start Sync") }
                         GlowOutlinedButton(onClick={ stopService(Intent(this@MainActivity,ProjectionService::class.java)); LiveStatus.text="Capture stopped" }) { Text("Stop Sync") }
                     }
                     if(host.isBlank()) Text("Enter a controller in Devices before starting sync.",color=blue)

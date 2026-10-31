@@ -11,7 +11,7 @@
 
 GlowSync is a native Android TV and Google TV application that samples screen-edge colours and sends individual RGB values to a WLED controller. It uses Android's screen-capture permission and DDP over your local network. **It is an early development build, not a production-ready release.** Physical TV and WLED hardware have not yet been validated.
 
-[Quick start](#quick-start) · [What it does](#what-it-does) · [Preview release](https://github.com/Robonavigators/GlowSync/releases/tag/v0.1.0-preview.1) · [Build and install](#build-and-install) · [Compatibility](#compatibility-and-limitations) · [Diagnostics](#diagnostics) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md) · [Project layout](#project-layout)
+[Quick start](#quick-start) · [What it does](#what-it-does) · [Preview release](https://github.com/Robonavigators/GlowSync/releases/tag/v0.1.0-preview.3) · [Build and install](#build-and-install) · [Compatibility](#compatibility-and-limitations) · [Diagnostics](#diagnostics) · [Troubleshooting](docs/TROUBLESHOOTING.md) · [Contributing](CONTRIBUTING.md) · [Project layout](#project-layout)
 
 ## Start here
 
@@ -36,7 +36,7 @@ The app does not save or upload screen frames. WLED HTTP and DDP are unencrypted
 ## Quick start
 
 1. Put your Android TV or Google TV and WLED controller on a reachable local network. Enable WLED real-time DDP input and connect an addressable RGB strip.
-2. [Build and install](#build-and-install) GlowSync, open it on the TV, then discover the controller or enter its IP address and test the connection. If verification fails, the app suggests checks for the address and local network.
+2. [Build and install](#build-and-install) GlowSync, open it on the TV, then discover the controller or enter its IP address and test the connection. If verification fails, the app suggests checks for the address and local network. Editing the address invalidates an in-progress verification; test the new address before continuing.
 3. Enter the LED count for each side. Set the bottom count to zero for a three-sided strip. Use the marker test, direction and offset to match the physical wiring.
 4. Accept Android's real screen-capture prompt. Adjust brightness, saturation, edge depth, white balance and smoothing in calibration.
 5. Start sync. Stop it from the app or foreground notification. Changing controllers requires a new capture session and fresh permission.
@@ -65,7 +65,7 @@ cd GlowSync
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Open the project in Android Studio if you prefer a graphical workflow. ADB installation requires a previously authorized connection to your TV. A debug APK is available temporarily as the [GitHub Actions artifact for this preview](https://github.com/Robonavigators/GlowSync/actions/runs/41087651449) until 2027-01-28; it is not a permanent APK release.
+Open the project in Android Studio if you prefer a graphical workflow. ADB installation requires a previously authorized connection to your TV. Download the debug APK from the [preview release](https://github.com/Robonavigators/GlowSync/releases/tag/v0.1.0-preview.3). A debug APK signed with a different key may require uninstalling an earlier build before installation.
 
 ## Screenshots
 
@@ -102,7 +102,7 @@ For a direct response test, stop sync and open **Settings → Open response test
 ./gradlew connectedDebugAndroidTest  # requires an attached device or emulator
 ```
 
-The available JVM tests cover packet encoding, mapping, colour processing, adaptive policies and diagnostics. Android instrumentation has exercised consent, loopback DDP, backgrounding, activity recreation, calibration, the stop action and navigation on an API 37 phone emulator. Those tests are not a substitute for a consumer TV and WLED controller. System-dialog tests use English labels and may need adaptation for other versions or locales.
+The available JVM tests cover packet encoding, mapping, colour processing, adaptive policies and diagnostics. Android instrumentation has exercised consent, loopback DDP, backgrounding, activity recreation, calibration, the stop action and navigation on an API 37 phone emulator. On an Android TV API 34 emulator, the full device suite has exposed an intermittent failure when testing Back from Calibration in the combined run. These tests are not a substitute for a consumer TV and WLED controller. System-dialog tests use English labels and may need adaptation for other versions or locales.
 
 ## Project layout
 

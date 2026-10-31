@@ -16,6 +16,48 @@ Instructions for Codex, Claude Code, Gemini CLI, Cursor, Copilot and other codin
 | Handle security or privacy | Follow [SECURITY.md](SECURITY.md); never publish secrets or captured frames; do not weaken consent or DRM protections |
 | Package or release | Confirm tests and reproducible artifacts, give truthful installation and known-limitations notes; never label an untested preview production-ready |
 
+## Detailed task playbooks (read before touching code)
+
+Unlike generic checklists, these guides specify investigation, stop conditions, acceptance checks and relevant actual source files:
+
+| Agent task | Required playbook | Primary code or reference |
+|---|---|---|
+| Bug/crash/build failure | [Bug fix](docs/workflows/bug-fix.md) | Reproduction, relevant module/test, [troubleshooting](docs/TROUBLESHOOTING.md) |
+| New functionality | [Feature development](docs/workflows/feature-development.md) | [Architecture](docs/architecture.md) and current implementation |
+| TV UI, themes, animation, D-pad | [Android TV interface](docs/workflows/android-tv-ui.md) | `MainActivity.kt`, [remote](docs/REMOTE.md) |
+| Capture permission, black frames, background work | [MediaProjection](docs/workflows/mediaprojection.md) | `capture/ProjectionService.kt`, [capture guide](docs/capture.md) |
+| LED ordering, discovery and packet issues | [WLED / DDP](docs/workflows/wled-ddp.md) | `network/Ddp.kt`, `WledDiscovery.kt`, [DDP spec](docs/specs/ddp.md) |
+| Stutter, power use, memory, latency | [Performance](docs/workflows/performance.md) | `performance/`, `processing/`, [measurements](docs/performance.md) |
+| TV/WLED compatibility report | [Device testing](docs/workflows/device-testing.md) | [Hardware report template](docs/devices/REPORT_TEMPLATE.md) |
+| APK publication, versioning, preview | [Release checklist](docs/workflows/release-checklist.md) | [Android CI](.github/workflows/android.yml) |
+
+**Agent operating contract:** inspect first, choose one playbook, write down acceptance criteria, implement the smallest safe change, test, update matching docs, and report exactly what succeeded and what was not tested. Never promise a follow-up commit or future validation as though already done.
+
+## Task-specific stop and escalation rules
+
+- **Consent/privacy:** if a requested behavior would silently bypass projection consent, capture secure/DRM video, record user pixels or export frames, stop that design and suggest a compliant option.
+- **Missing test equipment:** if a physical TV, LED strip or WLED firmware is unavailable, continue with deterministic tests but label hardware validation **not performed**. Never fake a device report.
+- **Failed CI:** inspect the failing step and reproduce or identify environment limitations. Do not change unrelated project requirements merely to make a check green.
+- **Unknown dependency:** inspect Android Gradle configuration and compatibility before changing versions; never assume a new plugin is supported.
+- **Performance uncertainty:** do not advertise a latency value without defining and measuring the endpoint. Frame-processing time and UDP-call time are not visible LED response.
+- **Permissions or dangerous actions:** do not root TVs, disable OS packages, replace launchers or modify system security controls to make GlowSync work.
+- **Review scope:** flag unexplained generated files, binary artifacts, signing material or modifications outside the requested feature before committing.
+
+## Canonical reviewer checklist
+
+A reviewer or autonomous agent must verify each applicable item:
+
+- [ ] Change solves the requested task and preserves unrelated behavior.
+- [ ] Relevant module and tests were inspected; new regression test included where practical.
+- [ ] Capture consent, stop/revoke cleanup, local privacy and secure-content restrictions are preserved.
+- [ ] ImageReader frames are closed; queues bounded; serialized latest-frame UDP path retained.
+- [ ] DDP LED mapping, packet offsets, frame length and PUSH flag are correct for changed behavior.
+- [ ] TV remote navigation, focus and reduced motion remain usable for UI changes.
+- [ ] Test commands and results are stated truthfully; hardware tests identify devices actually used.
+- [ ] README and relevant docs are updated; official website links remain intact.
+- [ ] No secrets, raw captured frames, network identifiers or unrequested binary artifacts enter the commit.
+- [ ] Final summary includes scope, tests, caveats and commit/PR URL.
+
 ## Non-negotiable safeguards
 
 1. **Consent and protected content:** respect Android MediaProjection permission and token lifecycle, foreground-service rules and secure-window / DRM / HDMI restrictions. No silent or background bypass of consent.

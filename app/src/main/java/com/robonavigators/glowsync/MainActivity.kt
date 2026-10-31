@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.*
 import com.robonavigators.glowsync.capture.*
 import com.robonavigators.glowsync.network.DdpSender
 import com.robonavigators.glowsync.network.WledDiscovery
+import com.robonavigators.glowsync.network.verificationHelp
 import com.robonavigators.glowsync.network.WledDevice
 import com.robonavigators.glowsync.data.ControllerStore
 import java.net.HttpURLConnection
@@ -186,7 +187,7 @@ class MainActivity : ComponentActivity() {
                         GlowOutlinedButton(onClick={ setupDiscovery?.close(); setupFound=emptyList(); message="Scanning local network…"; setupDiscovery=WledDiscovery(this@MainActivity,{ device -> runOnUiThread { if(setupFound.none { it.host==device.host }) setupFound=setupFound+device } }, { error -> runOnUiThread { message=error } }).also { it.start() } }) { Text("Discover WLED") }
                         setupFound.forEach { device -> GlowOutlinedButton(onClick={ host=device.host; verified=true; message="Verified ${device.name}: ${device.ledCount} LEDs, firmware ${device.version}"; prefs.edit().putString("host",host).apply(); setupStore.save(device); setupDiscovery?.close(); setupDiscovery=null }) { Text("${device.name} · ${device.host} · ${device.ledCount} LEDs") } }
                         OutlinedTextField(value=host,onValueChange={host=it; verified=false},label={Text("IP address or hostname")},singleLine=true)
-                        GlowButton(onClick={ val h=host.trim(); thread { try { val d=WledDiscovery.verify(h); runOnUiThread { verified=true; message="Verified ${d.name}: ${d.ledCount} LEDs, firmware ${d.version}"; prefs.edit().putString("host",h).apply(); setupStore.save(d) } } catch(e:Exception) { runOnUiThread { verified=false; message="Unable to verify: ${e.javaClass.simpleName}" } } } }) { Text("Test connection") }
+                        GlowButton(onClick={ val h=host.trim(); thread { try { val d=WledDiscovery.verify(h); runOnUiThread { verified=true; message="Verified ${d.name}: ${d.ledCount} LEDs, firmware ${d.version}"; prefs.edit().putString("host",h).apply(); setupStore.save(d) } } catch(e:Exception) { runOnUiThread { verified=false; message=verificationHelp(e) } } } }) { Text("Test connection") }
                         Text(message); GlowButton(enabled=verified,onClick={setupDiscovery?.close(); setupDiscovery=null; go(2)}) { Text("Continue") }
                     }
                     2 -> {
@@ -321,7 +322,7 @@ class MainActivity : ComponentActivity() {
                     OutlinedTextField(value=host,onValueChange={host=it},label={Text("WLED IP address or hostname")},singleLine=true,modifier=Modifier.width(420.dp))
                     Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                         GlowButton(onClick={ discovery?.close(); found=emptyList(); info="Scanning local network; devices are verified before listing."; discovery=WledDiscovery(this@MainActivity, { device -> runOnUiThread { if(found.none { it.host == device.host }) found=found+device } }, { error -> runOnUiThread { info=error } }).also { it.start() } }) { Text("Discover WLED") }
-                        GlowButton(onClick={ val h=host.trim(); thread { val message=try { val d=WledDiscovery.verify(h); controllerStore.save(d); runOnUiThread { saved=controllerStore.all() }; "Verified: ${d.name} · ${d.version} · ${d.ledCount} LEDs" } catch(e:Exception) { "Connection failed: ${e.javaClass.simpleName}" }; runOnUiThread { info=message } } }) { Text("Test connection") }
+                        GlowButton(onClick={ val h=host.trim(); thread { val message=try { val d=WledDiscovery.verify(h); controllerStore.save(d); runOnUiThread { saved=controllerStore.all() }; "Verified: ${d.name} · ${d.version} · ${d.ledCount} LEDs" } catch(e:Exception) { verificationHelp(e) }; runOnUiThread { info=message } } }) { Text("Test connection") }
                         GlowOutlinedButton(enabled=!LiveStatus.active,onClick={ val h=host.trim(); val count=listOf(top,right,bottom,left).sumOf { it.toIntOrNull() ?: 0 }.coerceIn(1,2000); thread { try { DdpSender(h).use { sender -> val rgb=ByteArray(count*3); for(i in 0 until count) rgb[i*3+ i%3]=100; sender.send(rgb) }; runOnUiThread { info="Test frame sent via UDP; check the LEDs." } } catch(e:Exception) { runOnUiThread { info="Test failed: ${e.javaClass.simpleName}" } } } }) { Text("Send LED test") }
                     }
                     GlowOutlinedButton(enabled=!LiveStatus.active,onClick={ val h=host.trim(); val count=listOf(top,right,bottom,left).sumOf { it.toIntOrNull() ?: 0 }.coerceIn(1,2000); val selected=marker%count; thread { try { DdpSender(h).use { sender -> val rgb=ByteArray(count*3); rgb[selected*3]=100; sender.send(rgb) }; runOnUiThread { info="Sent marker at physical index $selected; UDP delivery is unconfirmed."; marker=(selected+1)%count } } catch(e:Exception) { runOnUiThread { info="Marker failed: ${e.javaClass.simpleName}" } } } }) { Text("Send next LED marker ($marker)") }

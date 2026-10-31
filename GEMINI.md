@@ -1,3 +1,5 @@
-# Gemini project guidance
+# Gemini CLI instructions
 
-Read [AGENTS.md](AGENTS.md) for project, privacy, Android lifecycle and test guidance. [README.md](README.md) describes the current implementation; [PROMPT.md](PROMPT.md) is the original specification and includes features that are not yet implemented or verified.
+The authoritative engineering and safety rules for this repository are in [AGENTS.md](AGENTS.md). Read them before editing; then check [README.md](README.md) for the present implementation, [CONTRIBUTING.md](CONTRIBUTING.md) for contributions, and [PROMPT.md](PROMPT.md) for original intentions only.
+
+Never infer that a planned feature is implemented or that emulator results prove physical TV/WLED compatibility. Run applicable tests, document behavior changes and report actual outcomes.

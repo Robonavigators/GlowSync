@@ -12,3 +12,10 @@ fun verificationHelp(error: Exception): String = when (error) {
     is IllegalArgumentException -> "Check the address (without http:// or a port) and confirm the device is running WLED."
     else -> "Could not verify WLED. Check its address and open its web interface from another device."
 }
+
+/** Reject URL syntax before constructing the fixed /json/info verification endpoint. */
+fun validateWledHost(host: String) {
+    require(host.isNotBlank() && host.none {
+        it.isWhitespace() || it.code < 32 || it.code == 127 || it in "/\\@:#?%"
+    }) { "Enter a plain IP address or hostname without URL components" }
+}

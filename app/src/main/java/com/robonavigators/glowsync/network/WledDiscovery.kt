@@ -55,7 +55,7 @@ class WledDiscovery(context: Context, private val onDevice: (WledDevice) -> Unit
     override fun close() { if (running) try { nsd.stopServiceDiscovery(listener) } catch (_: Exception) { }; running=false; synchronized(queue) { queue.clear() }; if (multicast?.isHeld == true) multicast.release(); executor.shutdownNow() }
     companion object {
         fun verify(host: String): WledDevice {
-            require(host.isNotBlank() && !host.contains('/') && !host.contains('@') && !host.contains(':'))
+            validateWledHost(host)
             val c=URL("http://$host/json/info").openConnection() as HttpURLConnection
             c.connectTimeout=2500; c.readTimeout=2500; c.instanceFollowRedirects=false
             try {

@@ -69,6 +69,8 @@ cd GlowSync
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
+For an authorized ADB-connected TV, the optional `tools/build-and-install.sh [ADB_SERIAL]` helper builds and installs the debug APK. It stops before building with a clear error if the selected device is unavailable or has not authorized ADB. On Windows, use `tools/build-and-install.ps1` (optional `-Serial` argument).
+
 Open the project in Android Studio if you prefer a graphical workflow. ADB installation requires a previously authorized connection to your TV. Download the debug APK from the [preview release](https://github.com/Robonavigators/GlowSync/releases/tag/v0.1.0-preview.3). A debug APK signed with a different key may require uninstalling an earlier build before installation.
 
 ## Screenshots

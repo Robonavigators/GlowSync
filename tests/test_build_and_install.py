@@ -18,7 +18,7 @@ class BuildAndInstallTests(unittest.TestCase):
         shutil.copy(SOURCE, self.root / "tools" / "build-and-install.sh")
         (self.root / "tools" / "build-and-install.sh").chmod(0o755)
         self.write_executable("gradlew", '#!/bin/sh\nprintf "gradle:%s\\n" "$*" >> "$TOOL_LOG"\nexit "${BUILD_FAIL:-0}"\n')
-        self.write_executable("bin/adb", '#!/bin/sh\nprintf "adb:%s\\n" "$*" >> "$TOOL_LOG"\nexit 0\n')
+        self.write_executable("bin/adb", '#!/bin/sh\nprintf "adb:%s\\n" "$*" >> "$TOOL_LOG"\nexit "${ADB_FAIL:-0}"\n')
         self.log = self.root / "calls.log"
         self.env = dict(os.environ, PATH=str(self.root / "bin") + os.pathsep + os.environ.get("PATH", ""), TOOL_LOG=str(self.log))
 
@@ -50,6 +50,12 @@ class BuildAndInstallTests(unittest.TestCase):
         result = self.run_helper(BUILD_FAIL="1")
         self.assertNotEqual(0, result.returncode)
         self.assertEqual(["adb:get-state", "gradle:assembleDebug"], self.calls())
+
+    def test_unavailable_adb_stops_before_build(self):
+        result = self.run_helper(ADB_FAIL="1")
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("unavailable or unauthorized", result.stderr)
+        self.assertEqual(["adb:get-state"], self.calls())
 
     def test_rejects_multiple_serial_arguments(self):
         result = self.run_helper("one", "two")

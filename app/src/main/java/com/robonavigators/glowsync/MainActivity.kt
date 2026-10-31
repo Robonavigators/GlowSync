@@ -252,11 +252,12 @@ class MainActivity : ComponentActivity() {
         var bottom by remember { mutableStateOf(prefs.getInt("bottom",30).toString()) }; var left by remember { mutableStateOf(prefs.getInt("left",18).toString()) }
         var offset by remember { mutableStateOf(prefs.getInt("offset",0).toString()) }; var reverse by remember { mutableStateOf(prefs.getBoolean("reverse",false)) }
         val controllerStore=remember { ControllerStore(prefs) }
+        val verificationGuard=remember { VerificationRequestGuard() }
         var saved by remember { mutableStateOf(controllerStore.all()) }
         var found by remember { mutableStateOf<List<WledDevice>>(emptyList()) }
         var discovery by remember { mutableStateOf<WledDiscovery?>(null) }
         val currentDiscovery by rememberUpdatedState(discovery)
-        DisposableEffect(Unit) { onDispose { currentDiscovery?.close() } }
+        DisposableEffect(Unit) { onDispose { verificationGuard.invalidate(); currentDiscovery?.close() } }
         var brightness by remember { mutableFloatStateOf(prefs.getFloat("brightness",1f)) }
         var saturation by remember { mutableFloatStateOf(prefs.getFloat("saturation",1f)) }
         var depth by remember { mutableFloatStateOf(prefs.getFloat("depth",.1f)) }
@@ -326,10 +327,10 @@ class MainActivity : ComponentActivity() {
                     }
                     if(page==1) {
                     Text("Connect your lights",fontSize=22.sp,color=white)
-                    OutlinedTextField(value=host,onValueChange={host=it},label={Text("WLED IP address or hostname")},singleLine=true,modifier=Modifier.width(420.dp))
+                    OutlinedTextField(value=host,onValueChange={verificationGuard.invalidate(); host=it},label={Text("WLED IP address or hostname")},singleLine=true,modifier=Modifier.width(420.dp))
                     Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                         GlowButton(onClick={ discovery?.close(); found=emptyList(); info="Scanning local network; devices are verified before listing."; discovery=WledDiscovery(this@MainActivity, { device -> runOnUiThread { if(found.none { it.host == device.host }) found=found+device } }, { error -> runOnUiThread { info=error } }).also { it.start() } }) { Text("Discover WLED") }
-                        GlowButton(onClick={ val h=host.trim(); thread { val message=try { val d=WledDiscovery.verify(h); controllerStore.save(d); runOnUiThread { saved=controllerStore.all() }; "Verified: ${d.name} · ${d.version} · ${d.ledCount} LEDs" } catch(e:Exception) { verificationHelp(e) }; runOnUiThread { info=message } } }) { Text("Test connection") }
+                        GlowButton(onClick={ val h=host.trim(); val request=verificationGuard.next(); info="Checking connection…"; thread { try { val d=WledDiscovery.verify(h); runOnUiThread { if(verificationGuard.isCurrent(request)) { controllerStore.save(d); saved=controllerStore.all(); info="Verified: ${d.name} · ${d.version} · ${d.ledCount} LEDs" } } } catch(e:Exception) { runOnUiThread { if(verificationGuard.isCurrent(request)) info=verificationHelp(e) } } } }) { Text("Test connection") }
                         GlowOutlinedButton(enabled=!LiveStatus.active,onClick={ val h=host.trim(); val count=listOf(top,right,bottom,left).sumOf { it.toIntOrNull() ?: 0 }.coerceIn(1,2000); thread { try { DdpSender(h).use { sender -> val rgb=ByteArray(count*3); for(i in 0 until count) rgb[i*3+ i%3]=100; sender.send(rgb) }; runOnUiThread { info="Test frame sent via UDP; check the LEDs." } } catch(e:Exception) { runOnUiThread { info="Test failed: ${e.javaClass.simpleName}" } } } }) { Text("Send LED test") }
                     }
                     GlowOutlinedButton(enabled=!LiveStatus.active,onClick={ val h=host.trim(); val count=listOf(top,right,bottom,left).sumOf { it.toIntOrNull() ?: 0 }.coerceIn(1,2000); val selected=marker%count; thread { try { DdpSender(h).use { sender -> val rgb=ByteArray(count*3); rgb[selected*3]=100; sender.send(rgb) }; runOnUiThread { info="Sent marker at physical index $selected; UDP delivery is unconfirmed."; marker=(selected+1)%count } } catch(e:Exception) { runOnUiThread { info="Marker failed: ${e.javaClass.simpleName}" } } } }) { Text("Send next LED marker ($marker)") }
@@ -337,10 +338,10 @@ class MainActivity : ComponentActivity() {
                     Text(info,color=white.copy(alpha=.8f),fontSize=14.sp)
                     if(saved.isNotEmpty()) Text("Saved controllers (last verified information)",color=white)
                     saved.forEach { device -> Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                        GlowOutlinedButton(onClick={ host=device.host; info="Selected ${device.name}. Start a new capture session to change destination." }) { Text("${device.name} · ${device.host}") }
+                        GlowOutlinedButton(onClick={ verificationGuard.invalidate(); host=device.host; info="Selected ${device.name}. Start a new capture session to change destination." }) { Text("${device.name} · ${device.host}") }
                         GlowOutlinedButton(onClick={ controllerStore.remove(device.host); saved=controllerStore.all() }) { Text("Remove") }
                     } }
-                    found.forEach { device -> GlowOutlinedButton(onClick={ host=device.host; controllerStore.save(device); saved=controllerStore.all(); info="Selected ${device.name}, ${device.ledCount} LEDs, firmware ${device.version}. Save configuration to retain it." }) { Text("${device.name} · ${device.host} · ${device.ledCount} LEDs") } }
+                    found.forEach { device -> GlowOutlinedButton(onClick={ verificationGuard.invalidate(); host=device.host; controllerStore.save(device); saved=controllerStore.all(); info="Selected ${device.name}, ${device.ledCount} LEDs, firmware ${device.version}. Save configuration to retain it." }) { Text("${device.name} · ${device.host} · ${device.ledCount} LEDs") } }
                     }
                     if(page==2) {
                     Text("Map your Ambilight",fontSize=22.sp,color=white)

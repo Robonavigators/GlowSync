@@ -28,6 +28,8 @@ object Ddp {
 }
 data class SendTiming(val encodeNanos:Long,val sendNanos:Long)
 class DdpSender(host: String): AutoCloseable {
+    // Validate before DNS resolution so blank or URL-like values cannot become UDP targets.
+    init { validateWledHost(host) }
     private val address = InetAddress.getByName(host)
     private val socket = DatagramSocket()
     private val buffer=ByteArray(10+Ddp.MAX_PAYLOAD)

@@ -1,3 +1,9 @@
-# Claude project guidance
+# Claude Code instructions
 
-Read and follow `AGENTS.md` for the repository's engineering, privacy, and testing guidance. Consult `README.md` for implemented behavior and known limitations, and `PROMPT.md` for the original product specification. The specification describes the intended product; do not assume every item is already implemented or validated.
+Claude Code: read and obey [AGENTS.md](AGENTS.md) as the canonical project policy before making changes.
+
+@AGENTS.md
+
+Read [README.md](README.md) for the actual implemented features and limitations, [CONTRIBUTING.md](CONTRIBUTING.md) for PR conventions, and [PROMPT.md](PROMPT.md) only as the original product vision. Never treat proposed features as implemented or physical hardware as tested without evidence.
+
+Before finishing: run applicable tests, update README and relevant docs for behavior changes, and summarize files changed, checks actually run and remaining limitations.

@@ -327,7 +327,7 @@ class MainActivity : ComponentActivity() {
                     }
                     if(page==1) {
                     Text("Connect your lights",fontSize=22.sp,color=white)
-                    OutlinedTextField(value=host,onValueChange={verificationGuard.invalidate(); host=it},label={Text("WLED IP address or hostname")},singleLine=true,modifier=Modifier.width(420.dp))
+                    OutlinedTextField(value=host,onValueChange={verificationGuard.invalidate(); host=it; info="Address changed. Test the new connection to verify this controller."},label={Text("WLED IP address or hostname")},singleLine=true,modifier=Modifier.width(420.dp))
                     Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
                         GlowButton(onClick={ discovery?.close(); found=emptyList(); info="Scanning local network; devices are verified before listing."; discovery=WledDiscovery(this@MainActivity, { device -> runOnUiThread { if(found.none { it.host == device.host }) found=found+device } }, { error -> runOnUiThread { info=error } }).also { it.start() } }) { Text("Discover WLED") }
                         GlowButton(onClick={ val h=host.trim(); val request=verificationGuard.next(); info="Checking connection…"; thread { try { val d=WledDiscovery.verify(h); runOnUiThread { if(verificationGuard.isCurrent(request)) { controllerStore.save(d); saved=controllerStore.all(); info="Verified: ${d.name} · ${d.version} · ${d.ledCount} LEDs" } } } catch(e:Exception) { runOnUiThread { if(verificationGuard.isCurrent(request)) info=verificationHelp(e) } } } }) { Text("Test connection") }

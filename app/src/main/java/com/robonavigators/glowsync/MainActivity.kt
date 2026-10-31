@@ -85,7 +85,10 @@ private fun ResponseDiagnostic(host:String, count:Int, close:()->Unit) {
             }
         } catch(e:Exception) { if(!disposed.get()) result="Destination unavailable: ${e.javaClass.simpleName}" }
     }
-    DisposableEffect(Unit) { onDispose { disposed.set(true); sender?.close() } }
+    // The effect is installed before the asynchronous sender is ready; read the latest
+    // sender at disposal time so closing the diagnostic cannot leak its UDP socket.
+    val currentSender = rememberUpdatedState(sender)
+    DisposableEffect(Unit) { onDispose { disposed.set(true); currentSender.value?.close() } }
     Dialog(onDismissRequest=close,properties=DialogProperties(usePlatformDefaultWidth=false)) {
         Box(Modifier.fillMaxSize().background(if(lit) Color.White else Color.Black)) {
             Column(Modifier.align(Alignment.BottomCenter).padding(24.dp).background(Color(0xff101b32).copy(alpha=.95f),RoundedCornerShape(18.dp)).padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {

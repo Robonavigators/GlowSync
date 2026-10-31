@@ -1,6 +1,10 @@
 <p align="center"><img src="docs/banner.svg" alt="GlowSync — Your screen, beyond its borders. By Robonavigators." width="900"></p>
 
 <p align="center">
+  <a href="https://robonavigators-io.vercel.app/GlowSync/">GlowSync Project Website</a> · <a href="https://robonavigators-io.vercel.app/">Robonavigators Official Website</a>
+</p>
+
+<p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-4da8ff?labelColor=101b32" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/platform-Android%20TV%20%7C%20Google%20TV-74d5ff?labelColor=101b32" alt="Android TV and Google TV">
   <img src="https://img.shields.io/badge/lighting-WLED%20%2B%20DDP-9369f8?labelColor=101b32" alt="WLED and DDP">

@@ -67,7 +67,7 @@ A reviewer or autonomous agent must verify each applicable item:
 5. **Safety in repo operations:** do not commit credentials, keystores, signing keys, local configurations, screen recordings or private device/network details. No destructive or broad refactor unrelated to the request.
 6. **Performance claims:** measure each stage with appropriate timing; UDP send completion is not visual output latency. Report limitations and measurement environments accurately.
 7. **TV-first experience:** preserve usable remote-only navigation, visible focus, stable layout, legible text and reduced-motion behavior. Animations must not interfere with capture.
-8. **Maintain documentation:** whenever behavior, installation, compatibility, privacy, architecture or limitations change, update `README.md` and the relevant `docs/` page in the same change. Preserve the [GlowSync website](https://robonavigators-io.vercel.app/GlowSync/) and [Robonavigators website](https://robonavigators-io.vercel.app/) links.
+8. **Maintain documentation:** whenever behavior, installation, compatibility, privacy, architecture or limitations change, update `README.md` and the relevant `docs/` page in the same change. Preserve the [GlowSync website](https://robonavigators-io.vercel.app/Projects/GlowSync/) and [Robonavigators website](https://robonavigators-io.vercel.app/) links.
 
 ## Where changes belong
 

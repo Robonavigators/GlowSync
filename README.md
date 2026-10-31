@@ -88,7 +88,7 @@ The Devices page is also shown in [this emulator capture](docs/screenshots/devic
 ## Compatibility and limitations
 
 - The app targets Android 8 (API 26) and later and is currently built against API 35. Raising the target to API 37 requires reviewing the platform's local-network permission requirements.
-- Android can block DRM-protected content, secure windows and HDMI inputs. GlowSync does not bypass those protections, and a black capture cannot reliably be classified as protected content.
+- Android can block DRM-protected content and secure windows. External HDMI sources (including Apple TV and NVIDIA Shield) may be rendered outside Android's capturable display, so they are **not a verified workaround** for Netflix or other DRM restrictions. GlowSync does not bypass protections, and a black capture does not prove that DRM caused it. Test an external input with non-DRM colour patterns before evaluating protected streaming content.
 - TV firmware controls MediaProjection behavior. A session can be revoked, cannot silently restart after process death, and needs fresh consent. Screen sleep stops the service; resize support depends on Android callbacks and device behavior.
 - Multiple verified controllers can be saved; one is streamed to at a time. WLED connectivity is checked separately from the streaming loop, and UDP has no acknowledgement.
 - The interface, full lifecycle coverage, accessibility and performance require physical-TV validation. No physical screen-to-LED latency has been measured, and 60 FPS is not guaranteed.

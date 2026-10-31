@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/banner.svg" alt="GlowSync — Your screen, beyond its borders. By Robonavigators." width="900"></p>
 
 <p align="center">
-  <a href="https://robonavigators-io.vercel.app/GlowSync/">GlowSync Project Website</a> · <a href="https://robonavigators-io.vercel.app/">Robonavigators Official Website</a>
+  <a href="https://robonavigators-io.vercel.app/Projects/GlowSync/">GlowSync Project Website</a> · <a href="https://robonavigators-io.vercel.app/">Robonavigators Official Website</a>
 </p>
 
 <p align="center">

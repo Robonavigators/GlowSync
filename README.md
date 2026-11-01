@@ -43,7 +43,7 @@ The app does not save or upload screen frames. WLED HTTP and DDP are unencrypted
 2. [Build and install](#build-and-install) GlowSync, open it on the TV, then discover the controller or enter its IP address or hostname (not a URL) and test the connection. If verification fails, the app suggests checks for the address and local network. Editing the address invalidates an in-progress verification and clears the previous verification status; test the new address before continuing. Manual LED test buttons, including the setup wizard's LED marker, are unavailable until an address is entered; the UDP sender also rejects blank and URL-style addresses before resolving a destination.
 3. Enter the LED count for each side. Set the bottom count to zero for a three-sided strip. Use the marker test, direction and offset to match the physical wiring.
 4. Accept Android's real screen-capture prompt. Adjust brightness, saturation, edge depth, white balance and smoothing in calibration.
-5. Start sync. Stop it from the app or foreground notification. Changing controllers requires a new capture session and fresh permission.
+5. Start sync. The Home screen's Start Sync control stays disabled until a controller address is entered, and while capture is active. Stop sync from the app or foreground notification. Changing controllers requires a new capture session and fresh permission.
 
 When capture is unavailable, the standalone LED test still works. Dark scenes and blocked content can look identical; the optional dark-frame fallback also affects genuinely dark scenes.
 

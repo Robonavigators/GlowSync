@@ -317,7 +317,7 @@ class MainActivity : ComponentActivity() {
                     }
                     Text("GlowSync analyzes permitted screen colours locally. Protected video and HDMI inputs may be unavailable.",color=white.copy(alpha=.76f),fontSize=15.sp)
                     Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                        GlowButton(enabled=!LiveStatus.active,onClick={ if(host.isBlank()) info="Enter a controller address first." else { prefs.edit().putString("host",host.trim()).apply(); permission.launch(captureIntent()) } }) { Text("Allow Screen Capture / Start Sync") }
+                        GlowButton(enabled=!LiveStatus.active && host.isNotBlank(),onClick={ if(host.isBlank()) info="Enter a controller address first." else { prefs.edit().putString("host",host.trim()).apply(); permission.launch(captureIntent()) } }) { Text("Allow Screen Capture / Start Sync") }
                         GlowOutlinedButton(onClick={ stopService(Intent(this@MainActivity,ProjectionService::class.java)); LiveStatus.text="Capture stopped" }) { Text("Stop Sync") }
                     }
                     if(host.isBlank()) Text("Enter a controller in Devices before starting sync.",color=blue)

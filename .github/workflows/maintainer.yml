@@ -3,7 +3,7 @@ name: GlowSync Maintainer
 # Supervised maintenance: diagnose automatically; never push fixes or merge PRs.
 on:
   schedule:
-    - cron: '17 0,6,12,18 * * *'
+    - cron: '7,27,47 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -20,16 +20,36 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+      - name: Check whether full maintenance is needed
+        id: gate
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          # Every 20 minutes, check for new commits cheaply.
+          # Run full checks once daily even if no code has changed.
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ "$(date -u +%H)" = "00" ] && [ "$(date -u +%M)" -lt 30 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          elif git log -1 --format=%ct | awk -v now="$(date +%s)" '{exit (now-$1 <= 1800) ? 0 : 1}'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "No recent changes; skipping expensive build." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/setup-java@v4
+        if: steps.gate.outputs.run == 'true'
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
       - name: Tool helper tests
+        if: steps.gate.outputs.run == 'true'
         id: helpers
         continue-on-error: true
         run: python3 -m unittest discover -s tests -v
       - name: Android unit tests, lint and build
+        if: steps.gate.outputs.run == 'true'
         id: android
         continue-on-error: true
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug

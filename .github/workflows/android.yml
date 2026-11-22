@@ -20,6 +20,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - name: Tool helper tests
         run: python3 -m unittest discover -s tests -v
       - name: Unit tests, lint and debug APK

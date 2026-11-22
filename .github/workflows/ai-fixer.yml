@@ -21,7 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       actions: read
     steps:
       - name: Check for AI credentials
@@ -113,5 +114,3 @@ jobs:
             tests/**
             tools/**
             docs/**
-          labels: |
-            maintenance

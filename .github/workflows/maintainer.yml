@@ -3,7 +3,7 @@ name: GlowSync Maintainer
 # Supervised maintenance: diagnose automatically; never push fixes or merge PRs.
 on:
   schedule:
-    - cron: '17 3 * * 1'
+    - cron: '17 0,6,12,18 * * *'
   workflow_dispatch:
 
 permissions:
@@ -11,8 +11,8 @@ permissions:
   issues: write
 
 concurrency:
-  group: glowsync-weekly-maintainer
-  cancel-in-progress: false
+  group: glowsync-scheduled-maintainer
+  cancel-in-progress: true
 
 jobs:
   health:
@@ -24,6 +24,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
       - name: Tool helper tests
         id: helpers
         continue-on-error: true
@@ -39,7 +40,7 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const title = '[Maintainer] Weekly health check failed';
+            const title = '[Maintainer] Scheduled health check failed';
             const details = [
               'The scheduled GlowSync maintenance check found a failure.',
               '',

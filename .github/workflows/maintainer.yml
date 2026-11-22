@@ -3,7 +3,7 @@ name: GlowSync Maintainer
 # Supervised maintenance: diagnose automatically; never push fixes or merge PRs.
 on:
   schedule:
-    - cron: '7,27,47 * * * *'
+    - cron: '11,41 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
         env:
           EVENT_NAME: ${{ github.event_name }}
         run: |
-          # Every 20 minutes, check for new commits cheaply.
+          # Every 30 minutes, check for new commits cheaply.
           # Run full checks once daily even if no code has changed.
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
@@ -53,8 +53,23 @@ jobs:
         id: android
         continue-on-error: true
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - name: Emulator boot and launch smoke test
+        id: emulator
+        if: steps.gate.outputs.run == 'true' && steps.android.outcome == 'success'
+        continue-on-error: true
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: |
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb shell monkey -p com.robonavigators.glowsync 1
+            sleep 12
+            adb shell pidof com.robonavigators.glowsync
       - name: Create or update a maintenance issue on failure
-        if: steps.helpers.outcome == 'failure' || steps.android.outcome == 'failure'
+        if: steps.helpers.outcome == 'failure' || steps.android.outcome == 'failure' || steps.emulator.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |
@@ -66,6 +81,7 @@ jobs:
               '',
               '- Tool helper tests: ${{ steps.helpers.outcome }}',
               '- Android unit tests, lint and build: ${{ steps.android.outcome }}',
+              '- Emulator launch smoke test: ${{ steps.emulator.outcome }}',
               '- Run: https://github.com/' + owner + '/' + repo + '/actions/runs/' + context.runId,
               '',
               'Please review the logs and propose a fix through a pull request.',
